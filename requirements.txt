@@ -1,0 +1,4 @@
+tesseract
+ghostscript
+pngquant
+jbig2enc
