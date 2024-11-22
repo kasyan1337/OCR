@@ -7,6 +7,7 @@ __pycache__/
 *.so
 input/
 output/
+archive/
 
 # Distribution / packaging
 .Python

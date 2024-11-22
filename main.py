@@ -1,24 +1,29 @@
 import os
 import sys
+import shutil
 import ocrmypdf
 
 
-def ocr_pdfs(input_folder, output_folder, language='eng'):
+def ocr_pdfs(input_folder, output_folder, archive_folder, language='eng'):
     """
     Process PDF files in the input folder using OCR and save them to the output folder.
 
     Parameters:
         input_folder (str): Folder containing input PDF files.
         output_folder (str): Folder to save processed PDF files.
+        archive_folder (str): Folder to archive processed/skipped files.
         language (str): Language(s) for OCR. Default is 'eng' (English).
                        Combine languages using a '+' (e.g., 'eng+rus').
     """
-    # Ensure input and output folders exist
-    if not os.path.exists(input_folder):
-        print(f"Input folder '{input_folder}' does not exist.")
-        sys.exit(1)
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    # Ensure necessary folders exist
+    for folder in [input_folder, output_folder, archive_folder]:
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+    archive_input = os.path.join(archive_folder, 'input')
+    archive_output = os.path.join(archive_folder, 'output')
+    os.makedirs(archive_input, exist_ok=True)
+    os.makedirs(archive_output, exist_ok=True)
 
     # List all PDF files in the input folder
     pdf_files = [f for f in os.listdir(input_folder) if f.lower().endswith('.pdf')]
@@ -30,10 +35,15 @@ def ocr_pdfs(input_folder, output_folder, language='eng'):
     for pdf_file in pdf_files:
         input_path = os.path.join(input_folder, pdf_file)
         output_path = os.path.join(output_folder, pdf_file)
+        archive_input_path = os.path.join(archive_input, pdf_file)
+        archive_output_path = os.path.join(archive_output, pdf_file)
 
         # Skip processing if the output file already exists
         if os.path.exists(output_path):
             print(f"Skipping '{pdf_file}' - already processed.")
+            shutil.move(input_path, archive_input_path)
+            shutil.move(output_path, archive_output_path)
+            print(f"Moved '{pdf_file}' to archive.")
             continue
 
         print(f"Processing '{pdf_file}'...")
@@ -53,10 +63,11 @@ def ocr_pdfs(input_folder, output_folder, language='eng'):
 
 
 if __name__ == "__main__":
-    # Define the input and output folders
+    # Define the main folders
     source_folder = os.path.dirname(os.path.abspath(__file__))
     input_folder = os.path.join(source_folder, 'input')
     output_folder = os.path.join(source_folder, 'output')
+    archive_folder = os.path.join(source_folder, 'archive')
 
     # Language documentation
     """
@@ -82,4 +93,4 @@ if __name__ == "__main__":
         language = sys.argv[1]  # e.g., python main.py eng+rus
 
     # Call the OCR function
-    ocr_pdfs(input_folder, output_folder, language)
+    ocr_pdfs(input_folder, output_folder, archive_folder, language)
